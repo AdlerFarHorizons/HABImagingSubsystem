@@ -7,3 +7,8 @@ temp/
 tmp/
 cache/
 .hg/
+
+*.bmp
+*.pgm
+*.mp*
+*.m4a
