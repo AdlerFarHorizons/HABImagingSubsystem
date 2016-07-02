@@ -1,0 +1,28 @@
+PGR Camera Notes
+
+Best resolutions obtained are:
+1. highest resolution 1600x 1024 in RAW8 mode (i.e. 8 bits / pixel)
+2. 1024 x 768 in RAW16 mode (more colors " 16 bits per pixel)
+
+Mode is set from the following line in CustomImageEx program:
+ const PixelFormat k_fmt7PixFmt = PIXEL_FORMAT_RAW16;
+
+
+Resolution is set from the following lines in the same program:
+   fmt7ImageSettings.width = 1024;
+    fmt7ImageSettings.height = 768;
+
+FlyCapture2Test does not change anything about the capture except that it has a line to covert the picture before saving it:
+
+       error = rawImage.Convert( PIXEL_FORMAT_RAW16, &convertedImage );
+
+ For some reasons this program appears to save the pictures in B/W after conversion.
+
+More details about pixel formats and other settings are in the FlyCapture2Defs.h header file.
+
+1
+
+Dan D - April 9, 2016 - v1
+
+May 14h update: modified AsyncTriggerEx to actually save the images 
+- the same resolution was obtained as above plus a new onw: 1216x768 in RAW12 mode
