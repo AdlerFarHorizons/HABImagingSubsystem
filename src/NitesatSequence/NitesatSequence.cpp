@@ -150,9 +150,6 @@ int main(int argc, char* argv[])
 			return -1;
   		}
 
-		// DELAY FOR CLARITY
-		this_thread::sleep_for(chrono::milliseconds(1000));
-
 		// RETRIEVE IMAGE BUFFER
 	    Image rawImage;
 	
@@ -161,6 +158,9 @@ int main(int argc, char* argv[])
 	    	PrintError( error );
     		return -1;
   		}
+
+		// TESTING DELAY POST-WRITING PROPERTIES
+		this_thread::sleep_for(chrono::milliseconds(1000));
 
 		// SET IMAGE DIMENSIONS
     	PixelFormat pixFormat;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 		// SAVE IMAGE
 		ostringstream filename;
 		int ms_time = get_current_time();
-		filename << "img_" << shutter_speed << "_" << ms_time << "_" << argv[1] << ".bmp";
+		filename << "/home/pi/Pictures/" << "img_" << shutter_speed << "_" << ms_time << "_" << argv[1] << ".bmp";
 	      
     	error = convertedImage.Save( filename.str().c_str() );
     	if (error != PGRERROR_OK){

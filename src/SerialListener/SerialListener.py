@@ -23,7 +23,7 @@ ser = serial.Serial(port='/dev/ttyAMA0',
                     timeout=45)
 
 def execute_shutter_sequence(gps_time):
-    command = '/home/pi/flycapture_2.8/bin/NitesatSequence ' + str(gps_time)
+    command = '/home/pi/flycapture_2.8/bin/NitesatSequence ' + str(gps_time).replace('\0', '')
     exit_code = os.system(command)
     if exit_code != 0:
         print 'NitesatSequence failed with exit code ' + str(exit_code)
@@ -36,12 +36,13 @@ while True:
     input_gps_time = ser.readline()
     # grab contents between signal start and end
     if re.findall(r"\$(.*)\$", input_gps_time):
-        target_date = re.findall(r"\$(.*)\n", input_gps_time)[0]
+        target_date = re.findall(r"\$(.*)$", input_gps_time)[0]
         execute_shutter_sequence(target_date)
+        #os.system( "touch " + target_date + ".tmp" ) #Testing without camera
         counter += 1
         input_gps_time = ''
     # temporary sequence cap DELETE BEFORE LAUNCH
-    if counter > 5:
-        ser.close()
-        break
+    #if counter > 5:
+    #    ser.close()
+    #    break
         
