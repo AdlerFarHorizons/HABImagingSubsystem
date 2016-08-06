@@ -178,7 +178,8 @@ int main(int argc, char* argv[])
 		// SAVE IMAGE
 		ostringstream filename;
 		int ms_time = get_current_time();
-		filename << "/home/pi/Pictures/" << "img_" << shutter_speed << "_" << ms_time << "_" << argv[1] << ".bmp";
+
+		filename << "/home/pi/Pictures/img_gps_" << argv[1] << "_pi_" << ms_time << "_shutter_" << shutter_speed << ".bmp";
 	      
     	error = convertedImage.Save( filename.str().c_str() );
     	if (error != PGRERROR_OK){
