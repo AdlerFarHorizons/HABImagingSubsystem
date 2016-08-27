@@ -10,7 +10,9 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
-
+#include <string>
+#include <sys/param.h>
+#include <unistd.h>
 
 using namespace FlyCapture2;
 using namespace std;
@@ -30,7 +32,7 @@ int get_current_time()
 int main(int argc, char* argv[])
 {
 	const Mode k_fmt7Mode = MODE_7;
-	const PixelFormat k_fmt7PixFmt = PIXEL_FORMAT_RAW16;
+	const PixelFormat k_fmt7PixFmt = PIXEL_FORMAT_RAW8;
 	const vector<int> SHUTTER_SPEEDS { 10,20,50,100,200,500 };
 
 	BusManager busMgr;
@@ -39,6 +41,7 @@ int main(int argc, char* argv[])
 	Error error;
 	PGRGuid guid;
 
+	// chdir("/var/run/usbmount/San_Disk_Ultra_Fit_1");
 
 	// TEST FILE WRITE ACCESS
 	cout << "Testing file access..." << endl;
@@ -48,7 +51,7 @@ int main(int argc, char* argv[])
     	return -1;
  	}
     fclose(tempFile);
-    remove("test.txt");
+    //remove("test.txt");
 
 	// TEST CAMERA DETECTION
 	cout << "Testing camera detection..." << endl;
@@ -92,15 +95,15 @@ int main(int argc, char* argv[])
   	fmt7ImageSettings.mode = k_fmt7Mode;
   	fmt7ImageSettings.offsetX = 0;
  	fmt7ImageSettings.offsetY = 0;
- 	fmt7ImageSettings.width = 1920;
- 	fmt7ImageSettings.height = 1200;
+ 	fmt7ImageSettings.width = 1024;
+ 	fmt7ImageSettings.height = 720;
  	fmt7ImageSettings.pixelFormat = k_fmt7PixFmt;
 
 	// VALIDATE FORMAT7 SETTINGS
 	cout << "Validating fmt7 settings..." << endl;
   	error = cam.ValidateFormat7Settings(&fmt7ImageSettings,
-										&valid,
-				        				&fmt7PacketInfo );
+					    &valid,
+				            &fmt7PacketInfo );
   	if (error != PGRERROR_OK){
 		PrintError( error );
 		return -1;
@@ -136,6 +139,7 @@ int main(int argc, char* argv[])
   		prop.absControl = true;
   		prop.absValue = shutter_speed;
 
+		/*
 		// WRITE SHUTTE PROPERTY 
 		error = cam.SetProperty(&prop);
 		if (error != PGRERROR_OK){
@@ -143,12 +147,20 @@ int main(int argc, char* argv[])
 	    	return -1;
   		}
 
+		cout << "Properties written..." << endl;
+
+		*/
+
+		cout << "Starting capture..." << endl;
+
 		// START CAPTURE
 		error = cam.StartCapture();
 		if (error != PGRERROR_OK){
 			PrintError( error );
 			return -1;
   		}
+		
+		cout << "Capture started..." << endl;
 
 		// RETRIEVE IMAGE BUFFER
 	    Image rawImage;
@@ -158,9 +170,8 @@ int main(int argc, char* argv[])
 	    	PrintError( error );
     		return -1;
   		}
-
-		// TESTING DELAY POST-WRITING PROPERTIES
-		this_thread::sleep_for(chrono::milliseconds(1000));
+		
+		cout << "Got buffer" << endl;
 
 		// SET IMAGE DIMENSIONS
     	PixelFormat pixFormat;
@@ -175,17 +186,21 @@ int main(int argc, char* argv[])
 			return -1;
 		}
 
+		cout << "Converted image" << endl;
+
 		// SAVE IMAGE
 		ostringstream filename;
 		int ms_time = get_current_time();
 
-		filename << "/home/pi/Pictures/img_gps_" << argv[1] << "_pi_" << ms_time << "_shutter_" << shutter_speed << ".bmp";
+		filename << "img_gps_" << argv[1] << "_pi_" << ms_time << "_shutter_" << shutter_speed << ".bmp";
 	      
     	error = convertedImage.Save( filename.str().c_str() );
     	if (error != PGRERROR_OK){
     		PrintError( error );
     		return -1;
 		}
+
+		this_thread::sleep_for(chrono::milliseconds(5000));
 
 		// STOP CAPTURE
 	    error = cam.StopCapture();
