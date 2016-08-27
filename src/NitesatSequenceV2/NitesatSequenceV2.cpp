@@ -3,7 +3,6 @@
 
 #include "FlyCapture2.h"
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <vector>
@@ -34,20 +33,19 @@ int main(int argc, char* argv[])
 {
 	const Mode k_fmt7Mode = MODE_7;
 	const PixelFormat k_fmt7PixFmt = PIXEL_FORMAT_RAW16;
-	const vector<int> SHUTTER_SPEEDS { 10,20,50,100,200,500 };
+	const vector<int> SHUTTER_SPEEDS { 50, 100, 500 };
+	const vector<int> CAPTURES_PER_SHUTTER_SPEED { 10, 2, 1 };
 
 	BusManager busMgr;
 	unsigned int numCameras;
 	Camera cam;
 	Error error;
 	PGRGuid guid;
-	string final_destination = "/var/run/usbmount/SanDisk_Ultra_Fit_1/test.txt";
-	string oh_no = "oh no!!!!!!!!";
-	ofstream myfile(final_destination);
+
+	chdir("/var/run/usbmount/SanDisk_Ultra_Fit_1");
 
 	// TEST FILE WRITE ACCESS
 	cout << "Testing file access..." << endl;
-	myfile << oh_no;
     FILE* tempFile = fopen("test.txt", "w+");
     if (tempFile == NULL)  {
 		cout << "Failed to create file in current folder.  Please check permissions." << endl;
@@ -130,7 +128,9 @@ int main(int argc, char* argv[])
 	// SEQUENCE
 	cout << "Starting image sequence..." << endl;
 	unsigned int imageCount = 0;
-	for(auto const& shutter_speed: SHUTTER_SPEEDS) {
+	for(int j = 0; j < 3; j++) {
+
+		int shutter_speed = SHUTTER_SPEEDS.at(j); 
     	cout << "Writing image " << imageCount << " ..." << endl;
 		imageCount++;
 		
@@ -154,62 +154,65 @@ int main(int argc, char* argv[])
 
 		
 
-		cout << "Starting capture..." << endl;
+		cout << "Starting capture for " <<  shutter_speed << "ms images..." << endl;
 
-		// START CAPTURE
-		error = cam.StartCapture();
-		if (error != PGRERROR_OK){
-			PrintError( error );
-			return -1;
-  		}
-		
-		cout << "Capture started..." << endl;
-
-		// RETRIEVE IMAGE BUFFER
-	    Image rawImage;
+		for (int k = 0; k < CAPTURES_PER_SHUTTER_SPEED.at(j); k++) { 
+						
+			// START CAPTURE
+			error = cam.StartCapture();
+			if (error != PGRERROR_OK){
+				PrintError( error );
+				return -1;
+	  		}
+			
+			cout << "Capture started for image " << k << "..." << endl;
 	
-	    error = cam.RetrieveBuffer( &rawImage );
-	    if (error != PGRERROR_OK) {
-	    	PrintError( error );
-    		return -1;
-  		}
+			// RETRIEVE IMAGE BUFFER
+		    Image rawImage;
 		
-		cout << "Got buffer" << endl;
-
-		// SET IMAGE DIMENSIONS
-    	PixelFormat pixFormat;
-    	unsigned int rows, cols, stride;
-    	rawImage.GetDimensions( &rows, &cols, &stride, &pixFormat );
-
-		// CONVERT IMAGE
-    	Image convertedImage;
-    	error = rawImage.Convert( PIXEL_FORMAT_BGRU, &convertedImage );
-	    if (error != PGRERROR_OK){
-			PrintError( error );
-			return -1;
-		}
-
-		cout << "Converted image" << endl;
-
-		// SAVE IMAGE
-		ostringstream filename;
-		int ms_time = get_current_time();
-
-		filename << "img_gps_" << argv[1] << "_pi_" << ms_time << "_shutter_" << shutter_speed << ".bmp";
-	      
-    	error = convertedImage.Save( filename.str().c_str() );
-    	if (error != PGRERROR_OK){
-    		PrintError( error );
-    		return -1;
-		}
-
-		this_thread::sleep_for(chrono::milliseconds(5000));
-
-		// STOP CAPTURE
-	    error = cam.StopCapture();
-	    if (error != PGRERROR_OK){
-	      PrintError( error );
-	      return -1;
+		    error = cam.RetrieveBuffer( &rawImage );
+		    if (error != PGRERROR_OK) {
+		    	PrintError( error );
+	    		return -1;
+	  		}
+			
+			// cout << "Got buffer" << endl;
+	
+			// SET IMAGE DIMENSIONS
+	    	PixelFormat pixFormat;
+	    	unsigned int rows, cols, stride;
+	    	rawImage.GetDimensions( &rows, &cols, &stride, &pixFormat );
+	
+			// CONVERT IMAGE
+	    	Image convertedImage;
+	    	error = rawImage.Convert( PIXEL_FORMAT_BGRU, &convertedImage );
+		    if (error != PGRERROR_OK){
+				PrintError( error );
+				return -1;
+			}
+	
+			// cout << "Converted image" << endl;
+	
+			// SAVE IMAGE
+			ostringstream filename;
+			int ms_time = get_current_time();
+	
+			filename << "img_gps_" << argv[1] << "_pi_" << ms_time << "_shutter_" << shutter_speed << "_groupid_" << k << ".bmp";
+		      
+	    	error = convertedImage.Save( filename.str().c_str() );
+	    	if (error != PGRERROR_OK){
+	    		PrintError( error );
+	    		return -1;
+			}
+	
+			this_thread::sleep_for(chrono::milliseconds(3000));
+	
+			// STOP CAPTURE
+		    error = cam.StopCapture();
+		    if (error != PGRERROR_OK){
+		    	PrintError( error );
+	      		return -1;
+			}
 		}
 	}
 
