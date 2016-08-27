@@ -32,7 +32,7 @@ int get_current_time()
 int main(int argc, char* argv[])
 {
 	const Mode k_fmt7Mode = MODE_7;
-	const PixelFormat k_fmt7PixFmt = PIXEL_FORMAT_RAW8;
+	const PixelFormat k_fmt7PixFmt = PIXEL_FORMAT_RAW16;
 	const vector<int> SHUTTER_SPEEDS { 10,20,50,100,200,500 };
 
 	BusManager busMgr;
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
   		prop.absControl = true;
   		prop.absValue = shutter_speed;
 
-		/*
+		
 		// WRITE SHUTTE PROPERTY 
 		error = cam.SetProperty(&prop);
 		if (error != PGRERROR_OK){
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 
 		cout << "Properties written..." << endl;
 
-		*/
+		
 
 		cout << "Starting capture..." << endl;
 
